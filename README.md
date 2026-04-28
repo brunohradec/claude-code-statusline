@@ -1,6 +1,6 @@
 # Claude Code Statusline
 
-![prompt_example](./res/prompt_example.png)`
+![prompt_example](./res/prompt_example.png)
 
 To install, add the config from `settings.json` to your `~/.claude/settings.json`.
 
