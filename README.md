@@ -8,7 +8,7 @@ A tiny status line for Claude Code that tells you what model you're on, where yo
 
 ```
 Model:    [Opus 5]
-Project:  bookkeeper (main)
+Project:  your_project (main)
 Context:  ████░░░░░░ 42%
 Tokens:   38.1k (31.5k in / 6.6k out)
 Time:     12m 07s
