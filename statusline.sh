@@ -13,6 +13,11 @@ COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 # Percentage of context used:
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 
+# Token counts:
+INPUT_TOKENS=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
+OUTPUT_TOKENS=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
+TOTAL_TOKENS=$((INPUT_TOKENS + OUTPUT_TOKENS))
+
 # Duration in ms:
 DURATION_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
 
@@ -34,9 +39,25 @@ git rev-parse --git-dir > /dev/null 2>&1 && BRANCH="$(git branch --show-current 
 
 COST_FMT=$(printf '$%.2f' "$COST")
 
-echo -e "MDL: ${CYAN}[$MODEL]${RESET}"
-echo -e "DIR: ${DIR##*/} ${RED}($BRANCH)${RESET}"
-echo -e "CTX: ${BAR_COLOR}${BAR}${RESET} ${PCT}%"
-echo -e "TME: ${MINS}m ${SECS}s"
-# Uncomment to display cost in USD
-# echo -e "CST: ${YELLOW}${COST_FMT}${RESET}"
+# Format a token count as e.g. 12.3k, or leave as-is if under 1000
+fmt_tokens() {
+    local n=$1
+    if [ "$n" -ge 1000 ]; then
+        awk -v t="$n" 'BEGIN { printf "%.1fk", t/1000 }'
+    else
+        echo "$n"
+    fi
+}
+
+TOTAL_FMT=$(fmt_tokens "$TOTAL_TOKENS")
+INPUT_FMT=$(fmt_tokens "$INPUT_TOKENS")
+OUTPUT_FMT=$(fmt_tokens "$OUTPUT_TOKENS")
+
+printf "%-10s${CYAN}[%s]${RESET}\n" "Model:" "$MODEL"
+printf "%-10s${DIR##*/} ${RED}(%s)${RESET}\n" "Project:" "$BRANCH"
+printf "%-10s${BAR_COLOR}%s${RESET} %s%%\n" "Context:" "$BAR" "$PCT"
+printf "%-10s%s (%s in / %s out)\n" "Tokens:" "$TOTAL_FMT" "$INPUT_FMT" "$OUTPUT_FMT"
+printf "%-10s%sm %ss\n" "Time:" "$MINS" "$SECS"
+
+# Uncomment to display the cost of the current session in dollars
+# printf "%-10s${YELLOW}%s${RESET}\n" "Cost:" "$COST_FMT"
